@@ -52,7 +52,7 @@ function updateStatusUI(status) {
     btn.classList.add('spinning');
     btnText.textContent = 'Avaliando hosts...';
   } else {
-    serviceStatus.textContent = 'Monitor Ativo (a cada 10 min)';
+    serviceStatus.textContent = 'Monitor Ativo';
     btn.disabled = false;
     btn.classList.remove('spinning');
     btnText.textContent = 'Iniciar Teste Manual';

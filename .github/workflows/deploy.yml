@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+      - develop
   pull_request:
     branches:
       - master
@@ -35,7 +36,12 @@ jobs:
 
       - name: Sincronizar Arquivos via Rsync
         run: |
-          rsync -avz --delete             --exclude='node_modules'             --exclude='.git'             --exclude='data/*.sqlite*'             --exclude='.github'             ./ ${{ secrets.ORACLE_USER || 'ubuntu' }}@${{ secrets.ORACLE_HOST || '146.235.26.138' }}:/opt/iptv-host-dash/
+          rsync -avz --delete \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='data/*.sqlite*' \
+            --exclude='.github' \
+            ./ ${{ secrets.ORACLE_USER || 'ubuntu' }}@${{ secrets.ORACLE_HOST || '146.235.26.138' }}:/opt/iptv-host-dash/
 
       - name: Instalar Dependências e Reiniciar Aplicação no PM2
         run: |
@@ -43,7 +49,8 @@ jobs:
             set -e
             cd /opt/iptv-host-dash
             npm install --omit=dev
-            pm2 reload iptv-host-dash || pm2 restart iptv-host-dash
+            # Reinício forçado do processo lendo o ecosystem.config.js com as novas configurações e código
+            pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
             pm2 save
             pm2 status iptv-host-dash
           "

@@ -18,10 +18,17 @@ function buildApp(opts = {}) {
     methods: ['GET', 'POST', 'OPTIONS']
   });
 
-  // Servir arquivos estáticos do Dashboard Web (serve public/index.html na raiz automaticamente)
+  // Servir arquivos estáticos do Dashboard Web com desativação de cache para JS/CSS/HTML
   app.register(fastifyStatic, {
     root: path.join(__dirname, '../public'),
-    prefix: '/'
+    prefix: '/',
+    setHeaders: (res, pathName) => {
+      if (pathName.endsWith('.html') || pathName.endsWith('.js') || pathName.endsWith('.css')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+    }
   });
 
   // Registrar rotas da API e /iptv/host

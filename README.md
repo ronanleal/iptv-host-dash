@@ -78,14 +78,14 @@ $$Score_{final} = \begin{cases} 0 & \text{se offline no teste atual} \\ (Score_{
 
 ## 💻 Desenvolvimento Local em Container WSL (`wslc`)
 
-Os arquivos do projeto residem no sistema de arquivos do subsistema WSL (`/git/iptv-host-dash`) para garantir máxima velocidade de I/O recomendada pela Microsoft.
+Os arquivos do projeto residem no sistema de arquivos do subsistema WSL (`/git/iptv-host-dash`) para garantir máxima velocidade de I/O recomendada pela Microsoft. Os comandos do utilitário `wslc` são executados diretamente no **PowerShell do Windows**.
 
-### 1. Compilar a imagem do container:
+### 1. Compilar a imagem inicial do container:
 ```powershell
-wslc build -f /git/iptv-host-dash/Containerfile -t iptv-host-dash:latest /git/iptv-host-dash
+wslc build -f \\wsl$\Ubuntu\git\iptv-host-dash\Containerfile -t iptv-host-dash:latest \\wsl$\Ubuntu\git\iptv-host-dash
 ```
 
-### 2. Executar o container:
+### 2. Executar o container (com persistência do banco):
 ```powershell
 wslc run -d -p 3000:3000 -v /git/iptv-host-dash/data:/app/data --name iptv-host-dash iptv-host-dash:latest
 ```
@@ -93,6 +93,22 @@ wslc run -d -p 3000:3000 -v /git/iptv-host-dash/data:/app/data --name iptv-host-
 ### 3. Testar localmente:
 - **Texto puro**: `curl http://localhost:3000/iptv/host`
 - **Dashboard**: Abrir `http://localhost:3000/` no navegador.
+
+### 4. 🔄 Como aplicar alterações de código localmente (Rebuild):
+> **Importante:** Como o `Containerfile` copia os arquivos no momento do build (`COPY . .`), qualquer alteração em arquivos `.js`, `.html` ou `.css` só terá efeito recriando o container com a imagem atualizada. Um simples `restart` apenas reinicia a imagem antiga congelada.
+
+```powershell
+# Passo 1: Parar e remover o container anterior
+wslc stop iptv-host-dash
+wslc rm iptv-host-dash
+
+# Passo 2: Recompilar a imagem com o código novo
+wslc build -f \\wsl$\Ubuntu\git\iptv-host-dash\Containerfile -t iptv-host-dash:latest \\wsl$\Ubuntu\git\iptv-host-dash
+
+# Passo 3: Subir o novo container
+wslc run -d -p 3000:3000 -v /git/iptv-host-dash/data:/app/data --name iptv-host-dash iptv-host-dash:latest
+```
+*Dica: Após recriar o container, pressione `Ctrl + F5` no navegador para descarregar o cache de arquivos estáticos (CSS/JS).*
 
 ---
 
@@ -163,47 +179,45 @@ pm2 reload iptv-host-dash
 
 ---
 
-## 🖥️ Comandos Úteis e Visualização de Logs na Instância Local (WSL)
+## 🖥️ Comandos Úteis e Gerenciamento do Container Local (`wslc`)
 
-Acesse o WSL via SSH:
-```ash
-ssh wsl
-```
+> **Nota:** Os comandos `wslc` são executados no **PowerShell do Windows**.
 
 ### 1. Visualizar logs do container em tempo real:
-```ash
+```powershell
 wslc logs -f iptv-host-dash
 ```
 
 ### 2. Visualizar as últimas 100 linhas de log e sair:
-```ash
+```powershell
 wslc logs --tail 100 iptv-host-dash
 ```
 
-### 3. Verificar status do container:
-```ash
-wslc ps -a | grep iptv-host-dash
+### 3. Verificar status e healthcheck do container:
+```powershell
+wslc ps -a
 ```
 
 ### 4. Parar o container:
-```ash
+```powershell
 wslc stop iptv-host-dash
 ```
 
 ### 5. Iniciar o container (caso esteja parado):
-```ash
+```powershell
 wslc start iptv-host-dash
 ```
 
-### 6. Reiniciar o container:
-```ash
+### 6. Reiniciar o container (sem alterações no código):
+```powershell
 wslc restart iptv-host-dash
 ```
 
-### 7. Recriar o container do zero (rebuild):
-```ash
-wslc stop iptv-host-dash && wslc rm iptv-host-dash
-wslc build -f /git/iptv-host-dash/Containerfile -t iptv-host-dash:latest /git/iptv-host-dash
+### 7. Recriar o container com novas alterações de código (Rebuild Completo):
+```powershell
+wslc stop iptv-host-dash
+wslc rm iptv-host-dash
+wslc build -f \\wsl$\Ubuntu\git\iptv-host-dash\Containerfile -t iptv-host-dash:latest \\wsl$\Ubuntu\git\iptv-host-dash
 wslc run -d -p 3000:3000 -v /git/iptv-host-dash/data:/app/data --name iptv-host-dash iptv-host-dash:latest
 ```
 
