@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPTV Host Dash — Ranking & Benchmark de Estabilidade</title>
+  <meta name="description" content="Dashboard de monitoramento, benchmark e classificação de performance e estabilidade dos melhores hosts IPTV com métricas em tempo real.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 8a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <polygon points="10 9 15 12 10 15 10 9"></polygon>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">IPTV Host Dash</h1>
+          <div class="brand-subtitle">
+            <span class="status-dot pulse"></span>
+            <span id="service-status">Monitor Ativo (a cada 10 min)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <div class="countdown-badge">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Próximo teste: <strong id="countdown-timer">--:--</strong></span>
+        </div>
+
+        <button id="btn-manual-test" class="btn-primary" onclick="triggerManualTest()">
+          <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span id="btn-manual-text">Iniciar Teste Manual</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-container">
+    <!-- Hero Best Host Section -->
+    <section class="hero-best-card" id="hero-best-section">
+      <div class="hero-badge">
+        <span class="crown-icon">👑</span>
+        MELHOR HOST IPTV RECOMENDADO
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-main-info">
+          <div class="host-url-wrapper">
+            <span class="host-url-text" id="best-host-url">Carregando melhor host...</span>
+            <button class="btn-copy" onclick="copyBestHost()" title="Copiar URL">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span id="copy-text">Copiar</span>
+            </button>
+          </div>
+
+          <div class="hero-endpoint-hint">
+            <span>Endpoint direto em texto puro:</span>
+            <a href="/iptv/host" target="_blank" class="code-link">GET /iptv/host</a>
+          </div>
+        </div>
+
+        <div class="hero-score-badge">
+          <div class="score-circle">
+            <span class="score-number" id="best-host-score">--</span>
+            <span class="score-label">Nota Final</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-metrics-grid">
+        <div class="hero-metric-item">
+          <span class="metric-label">TTFB (Início do Canal)</span>
+          <span class="metric-value highlight" id="best-host-ttfb">-- ms</span>
+        </div>
+        <div class="hero-metric-item">
+          <span class="metric-label">Jitter (Estabilidade)</span>
+          <span class="metric-value" id="best-host-jitter">-- ms</span>
+        </div>
+        <div class="hero-metric-item">
+          <span class="metric-label">Velocidade Média</span>
+          <span class="metric-value" id="best-host-speed">-- KB/s</span>
+        </div>
+        <div class="hero-metric-item">
+          <span class="metric-label">Uptime 24 Horas</span>
+          <span class="metric-value green" id="best-host-uptime">--%</span>
+        </div>
+        <div class="hero-metric-item">
+          <span class="metric-label">Métrica de Remuneração</span>
+          <span class="metric-value" id="best-host-reputation">-- pts</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Executive KPI Row -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-title">Hosts Monitorados</span>
+          <span class="kpi-number" id="kpi-total-hosts">35</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-title">Disponibilidade</span>
+          <div class="kpi-subtext">
+            <span class="kpi-number green" id="kpi-online-hosts">--</span>
+            <span class="kpi-muted">/ <span id="kpi-offline-hosts">--</span> offline</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 14"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-title">TTFB Médio Global</span>
+          <span class="kpi-number" id="kpi-avg-ttfb">-- ms</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-title">Última Rodada</span>
+          <span class="kpi-number small" id="kpi-last-run">--:--:--</span>
+          <span class="kpi-sub" id="kpi-last-duration">Duração: --s</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Charts Section -->
+    <section class="charts-section">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2 class="chart-title">🏆 Top 10 Melhores Hosts</h2>
+          <span class="chart-subtitle">Classificação por nota composta geral (0-100)</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="chart-top-hosts"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2 class="chart-title">⚡ Estabilidade: TTFB vs Jitter</h2>
+          <span class="chart-subtitle">Tempo de resposta e variação (menor é melhor)</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="chart-stability"></canvas>
+        </div>
+      </div>
+    </section>
+
+        <!-- NOVO GRÁFICO: Histórico de Notas dos Top 10 Hosts -->
+    <section class="chart-card-full">
+      <div class="chart-header">
+        <h2 class="chart-title">📈 Histórico de Notas dos Top 10 Hosts</h2>
+        <span class="chart-subtitle">Evolução temporal da nota composta (0-100) dos servidores líderes por rodada</span>
+      </div>
+      <div class="chart-body-wide" style="height: 320px;">
+        <canvas id="chart-top10-history"></canvas>
+      </div>
+    </section>
+
+<section class="chart-card-full">
+      <div class="chart-header">
+        <h2 class="chart-title">📈 Histórico de Desempenho das Rodadas Recentes</h2>
+        <span class="chart-subtitle">Evolução temporal das notas compostas dos melhores servidores</span>
+      </div>
+      <div class="chart-body-wide">
+        <canvas id="chart-history"></canvas>
+      </div>
+    </section>
+
+    <!-- Full Ranking Table Section -->
+    <section class="table-section">
+      <div class="table-toolbar">
+        <div class="toolbar-title-group">
+          <h2 class="section-title">Classificação Geral dos Hosts</h2>
+          <span class="section-count" id="table-total-count">35 hosts</span>
+        </div>
+
+        <div class="toolbar-controls">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="filter-search" placeholder="Buscar host..." oninput="filterTable()">
+          </div>
+
+          <div class="filter-pills">
+            <button class="pill active" id="pill-all" onclick="setFilter('all')">Todos</button>
+            <button class="pill" id="pill-online" onclick="setFilter('online')">Online (<span id="pill-online-count">0</span>)</button>
+            <button class="pill" id="pill-offline" onclick="setFilter('offline')">Offline (<span id="pill-offline-count">0</span>)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="hosts-table">
+          <thead>
+            <tr>
+              <th class="th-rank">Pos</th>
+              <th class="th-host">Host IPTV</th>
+              <th class="th-status">Status</th>
+              <th class="th-score">Nota Geral</th>
+              <th class="th-streak">Streak / Remuneração</th>
+              <th class="th-ttfb">TTFB</th>
+              <th class="th-jitter">Jitter</th>
+              <th class="th-latency">Latência</th>
+              <th class="th-speed">Velocidade</th>
+              <th class="th-uptime">Uptime 24h</th>
+              <th class="th-action">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr>
+              <td colspan="11" class="td-loading">Carregando dados dos servidores...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <span id="toast-message">Notificação</span>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <span>IPTV Host Dash — Benchmark e monitoramento contínuo em Node.js</span>
+      <span>Oracle Cloud Deploy • Desenvolvido via WSL Container</span>
+    </div>
+  </footer>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
