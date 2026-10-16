@@ -216,7 +216,7 @@ async function getTop10History(limitRuns = 15) {
   const chronologicalRuns = [...runs].reverse();
   const runIds = chronologicalRuns.map(r => r.id);
 
-  // Selecionar top 5 hosts ordenados pelo score mais recente
+  // Selecionar top 10 hosts ordenados pelo score mais recente
   const topHostsRows = await allAsync(`
     SELECT host, last_score, status
     FROM hosts
@@ -224,7 +224,7 @@ async function getTop10History(limitRuns = 15) {
       CASE WHEN status = 'online' THEN 1 ELSE 0 END DESC,
       last_score DESC,
       reputation_score DESC
-    LIMIT 5
+    LIMIT 10
   `);
 
   if (!topHostsRows || topHostsRows.length === 0) {
