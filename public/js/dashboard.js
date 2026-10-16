@@ -14,6 +14,7 @@ let nextRunSeconds = 600;
 
 document.addEventListener('DOMContentLoaded', () => {
   initCharts();
+  initZoomControls();
   loadAllData();
   startCountdownTimer();
 
@@ -383,6 +384,30 @@ function initCharts() {
           padding: 10,
           boxPadding: 4,
           usePointStyle: true
+        },
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x',
+            onPan: function() {
+              const btn = document.getElementById('btn-reset-zoom-top10');
+              if (btn) btn.style.display = 'inline-block';
+            }
+          },
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.1
+            },
+            pinch: {
+              enabled: true
+            },
+            mode: 'x',
+            onZoom: function() {
+              const btn = document.getElementById('btn-reset-zoom-top10');
+              if (btn) btn.style.display = 'inline-block';
+            }
+          }
         }
       },
       scales: {
@@ -509,4 +534,17 @@ function showToast(msg) {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3500);
+}
+
+
+function initZoomControls() {
+  const btnReset = document.getElementById('btn-reset-zoom-top10');
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      if (chartTop10History && typeof chartTop10History.resetZoom === 'function') {
+        chartTop10History.resetZoom();
+        btnReset.style.display = 'none';
+      }
+    });
+  }
 }
