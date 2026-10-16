@@ -1,0 +1,49 @@
+name: Deploy to Production (Oracle Cloud)
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+    types:
+      - closed
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    # Executa quando houver push direto ou quando um pull request para master/main for mesclado (merged)
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Chave SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ORACLE_SSH_KEY }}
+
+      - name: Registrar Host nas Chaves Conhecidas (known_hosts)
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.ORACLE_PORT || '22' }} -H ${{ secrets.ORACLE_HOST || '146.235.26.138' }} >> ~/.ssh/known_hosts
+
+      - name: Sincronizar Arquivos via Rsync
+        run: |
+          rsync -avz --delete             --exclude='node_modules'             --exclude='.git'             --exclude='data/*.sqlite*'             --exclude='.github'             ./ ${{ secrets.ORACLE_USER || 'ubuntu' }}@${{ secrets.ORACLE_HOST || '146.235.26.138' }}:/opt/iptv-host-dash/
+
+      - name: Instalar Dependências e Reiniciar Aplicação no PM2
+        run: |
+          ssh -p ${{ secrets.ORACLE_PORT || '22' }} ${{ secrets.ORACLE_USER || 'ubuntu' }}@${{ secrets.ORACLE_HOST || '146.235.26.138' }} "
+            set -e
+            cd /opt/iptv-host-dash
+            npm install --omit=dev
+            pm2 reload iptv-host-dash || pm2 restart iptv-host-dash
+            pm2 save
+            pm2 status iptv-host-dash
+          "
