@@ -621,16 +621,18 @@ body {
   background: rgba(16, 22, 35, 0.95);
   color: var(--text-muted);
   font-weight: 600;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 0.6rem;
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
+  font-size: 0.8rem;
 }
 
 .data-table td {
-  padding: 0.9rem 1rem;
+  padding: 0.75rem 0.6rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: var(--text-main);
   white-space: nowrap;
+  font-size: 0.82rem;
 }
 
 .data-table tbody tr {
@@ -655,6 +657,10 @@ body {
   font-family: var(--font-mono);
   font-weight: 600;
   color: #e2e8f0;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .status-badge {
@@ -684,7 +690,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: 140px;
+  width: 110px;
 }
 
 .score-bar-bg {
