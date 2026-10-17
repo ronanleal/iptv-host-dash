@@ -24,16 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadAllData() {
   try {
-    const [hostsRes, statusRes, runsRes, top10Res] = await Promise.all([
+    const [hostsRes, statusRes, runsRes, top10Res, proxyRes] = await Promise.all([
       fetch('/api/hosts').then(r => r.json()),
       fetch('/api/status').then(r => r.json()),
       fetch('/api/runs?limit=10').then(r => r.json()),
-      fetch('/api/history/top10?limit=15').then(r => r.json())
+      fetch('/api/history/top10?limit=15').then(r => r.json()),
+      fetch('/api/proxy/info').then(r => r.json()).catch(() => null)
     ]);
 
     allHostsData = hostsRes.hosts || [];
     updateStatusUI(statusRes);
     updateBestHostUI(allHostsData[0] || null);
+    updateProxyUI(proxyRes, allHostsData[0] || null);
     updateKPIs(allHostsData, statusRes);
     renderTable();
     updateCharts(allHostsData, runsRes.runs || [], top10Res || null);
@@ -546,5 +548,27 @@ function initZoomControls() {
         btnReset.style.display = 'none';
       }
     });
+  }
+}
+
+
+function updateProxyUI(proxyInfo, bestHost) {
+  const urlEl = document.getElementById('proxy-tv-url');
+  const targetHostEl = document.getElementById('proxy-active-host');
+  if (!urlEl) return;
+
+  const currentOrigin = window.location.origin;
+  urlEl.textContent = proxyInfo?.proxy_url || currentOrigin;
+
+  if (targetHostEl) {
+    const activeTarget = proxyInfo?.current_target_host || (bestHost ? bestHost.host : 'Automático (Melhor Host)');
+    targetHostEl.textContent = activeTarget;
+  }
+}
+
+function copyProxyUrl() {
+  const url = document.getElementById('proxy-tv-url')?.textContent;
+  if (url && !url.includes('Carregando')) {
+    copyToClipboard(url);
   }
 }

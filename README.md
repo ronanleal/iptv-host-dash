@@ -8,6 +8,13 @@ Desenvolvido para operar localmente em container Linux via **WSLC** (WSL Contain
 
 ## 🚀 Funcionalidades Principais
 
+
+- **Proxy Reverso Xtream para Smart TV & Aplicativos (Bypass de Bloqueio de Operadora)**:
+  - Permite configurar a URL da instância (ex: `http://146.235.26.138:3000`) diretamente como **Servidor** no aplicativo de IPTV da sua TV (IPTV Smarters, TiviMate, XCIPTV, etc.).
+  - **Túnel Seguro**: As requisições de autenticação e fluxos de vídeo (ao vivo, filmes, séries e EPG) são encaminhadas via **Cloudflare WARP**, contornando bloqueios de ASN e operadoras (Starlink, Claro, Vivo, etc.).
+  - **Smart Failover**: Encaminha automaticamente para o servidor Top 1 online mais rápido e estável do ranking, ou para um host fixo via `PROXY_TARGET_HOST`.
+  - **Seguimento Automático de Redirecionamento (HTTP 302)**: O proxy consome internamente os redirecionamentos dos nós de streaming (CDN/DataCamp) e repassa os bytes de vídeo diretamente para a TV via PIPE sem expor o IP bloqueado ao cliente final.
+
 - **Endpoint de Consumo Simples (`/iptv/host`)**:
   - Retorna em texto puro (`text/plain`) apenas a URL do melhor host no momento (ex: `http://ocvtab.info`).
   - Consumo direto por players, scripts e aplicativos de IPTV sem necessidade de parsing JSON.

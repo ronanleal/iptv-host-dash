@@ -831,3 +831,150 @@ body {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ==========================================================================
+   Xtream Proxy TV Card
+   ========================================================================== */
+.proxy-tv-card {
+  background: linear-gradient(135deg, rgba(20, 26, 48, 0.9) 0%, rgba(28, 22, 54, 0.85) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.75rem;
+  box-shadow: 0 4px 20px -2px rgba(139, 92, 246, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.proxy-tv-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #8b5cf6, #3b82f6);
+}
+
+.proxy-tv-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.proxy-tv-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c084fc;
+  flex-shrink: 0;
+}
+
+.proxy-tv-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.proxy-tv-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.proxy-tv-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.badge-bypass {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.proxy-tv-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.proxy-tv-action-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(10, 15, 29, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 1.1rem;
+  flex-wrap: wrap;
+}
+
+.proxy-url-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 250px;
+}
+
+.proxy-url-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.proxy-url-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #38bdf8;
+  word-break: break-all;
+}
+
+.btn-copy-proxy {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-copy-proxy:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.proxy-tv-footer {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.proxy-tv-footer strong {
+  color: var(--text-secondary);
+}

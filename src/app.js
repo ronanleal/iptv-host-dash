@@ -3,6 +3,7 @@ const fastify = require('fastify');
 const fastifyCors = require('@fastify/cors');
 const fastifyStatic = require('@fastify/static');
 const iptvRoutes = require('./routes/iptvRoutes');
+const xtreamRoutes = require('./routes/xtreamRoutes');
 
 function buildApp(opts = {}) {
   const app = fastify({
@@ -15,7 +16,7 @@ function buildApp(opts = {}) {
   // Habilitar CORS
   app.register(fastifyCors, {
     origin: '*',
-    methods: ['GET', 'POST', 'OPTIONS']
+    methods: ['GET', 'POST', 'OPTIONS', 'HEAD', 'PUT', 'DELETE', 'PATCH']
   });
 
   // Servir arquivos estáticos do Dashboard Web com desativação de cache para JS/CSS/HTML
@@ -33,6 +34,8 @@ function buildApp(opts = {}) {
 
   // Registrar rotas da API e /iptv/host
   app.register(iptvRoutes);
+  // Registrar rotas de Proxy Reverso do Xtream para TV
+  app.register(xtreamRoutes);
 
   return app;
 }
