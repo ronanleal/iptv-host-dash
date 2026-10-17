@@ -17,7 +17,8 @@ module.exports = {
         XTREAM_PASSWORD: 'aqExxj',
         PROBE_CONCURRENCY: 5,
         PROBE_TIMEOUT_MS: 4000,
-        DATA_RETENTION_DAYS: 14
+        DATA_RETENTION_DAYS: 14,
+        SOCKS_PROXY_URL: 'socks5h://127.0.0.1:40000'
       }
     }
   ]
