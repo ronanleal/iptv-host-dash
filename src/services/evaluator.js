@@ -1,6 +1,19 @@
+const http = require('http');
+const https = require('https');
 const env = require('../config/env');
 const { calculateInstantScore, updateHostReputation, calculateCompositeScore } = require('./scoring');
 const { calculate24hUptime } = require('../db/hostRepository');
+
+let SocksProxyAgent = null;
+try {
+  SocksProxyAgent = require('socks-proxy-agent').SocksProxyAgent;
+} catch (e) {
+  // socks-proxy-agent opcional em ambiente local
+}
+
+const socksAgent = (env.SOCKS_PROXY_URL && SocksProxyAgent)
+  ? new SocksProxyAgent(env.SOCKS_PROXY_URL)
+  : null;
 
 const BROWSER_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
@@ -18,7 +31,14 @@ function formatHostUrl(url) {
   return trimmed;
 }
 
-async function probeSingleUrl(url, timeoutMs) {
+function probeSingleUrl(url, timeoutMs) {
+  if (socksAgent) {
+    return probeViaAgent(url, timeoutMs);
+  }
+  return probeDirectFetch(url, timeoutMs);
+}
+
+async function probeDirectFetch(url, timeoutMs) {
   const start = performance.now();
   let ttfb = 0;
   try {
@@ -55,6 +75,83 @@ async function probeSingleUrl(url, timeoutMs) {
       body: ''
     };
   }
+}
+
+function probeViaAgent(url, timeoutMs) {
+  return new Promise((resolve) => {
+    const isHttps = url.startsWith('https:');
+    const client = isHttps ? https : http;
+    const start = performance.now();
+    let ttfb = 0;
+    let resolved = false;
+
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        req.destroy();
+        const duration = performance.now() - start;
+        resolve({
+          ok: false,
+          status: 0,
+          error: 'Timeout',
+          ttfb: duration,
+          latency: duration,
+          bytes: 0,
+          durationMs: duration,
+          body: ''
+        });
+      }
+    }, timeoutMs);
+
+    const req = client.get(url, {
+      agent: socksAgent,
+      headers: BROWSER_HEADERS
+    }, (res) => {
+      ttfb = performance.now() - start;
+      const chunks = [];
+      let totalBytes = 0;
+
+      res.on('data', chunk => {
+        chunks.push(chunk);
+        totalBytes += chunk.length;
+      });
+
+      res.on('end', () => {
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(timer);
+        const totalLatency = performance.now() - start;
+        const body = Buffer.concat(chunks).toString('utf8');
+
+        resolve({
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          status: res.statusCode,
+          ttfb,
+          latency: totalLatency,
+          bytes: totalBytes,
+          durationMs: totalLatency,
+          body
+        });
+      });
+    });
+
+    req.on('error', (err) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timer);
+      const totalLatency = performance.now() - start;
+      resolve({
+        ok: false,
+        status: 0,
+        error: err.message || 'Falha de conexão',
+        ttfb: totalLatency,
+        latency: totalLatency,
+        bytes: 0,
+        durationMs: totalLatency,
+        body: ''
+      });
+    });
+  });
 }
 
 async function benchmarkHost(hostUrl, hostCurrentState = {}) {

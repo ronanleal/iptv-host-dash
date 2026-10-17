@@ -1,7 +1,7 @@
 {
   "name": "iptv-host-dash",
   "version": "1.0.0",
-  "description": "Sistema de benchmark, monitoramento e classificação de estabilidade de hosts IPTV",
+  "description": "Sistema de benchmark, monitoramento e classificacao de estabilidade de hosts IPTV",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -23,6 +23,7 @@
     "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
     "node-cron": "^3.0.3",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "socks-proxy-agent": "^8.0.4"
   }
 }

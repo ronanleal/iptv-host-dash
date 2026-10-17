@@ -15,7 +15,8 @@ const env = {
   XTREAM_PASSWORD: process.env.XTREAM_PASSWORD || 'aqExxj',
   PROBE_CONCURRENCY: parseInt(process.env.PROBE_CONCURRENCY || '5', 10),
   PROBE_TIMEOUT_MS: parseInt(process.env.PROBE_TIMEOUT_MS || '4000', 10),
-  DATA_RETENTION_DAYS: parseInt(process.env.DATA_RETENTION_DAYS || '14', 10)
+  DATA_RETENTION_DAYS: parseInt(process.env.DATA_RETENTION_DAYS || '14', 10),
+  SOCKS_PROXY_URL: process.env.SOCKS_PROXY_URL || ''
 };
 
 module.exports = env;
