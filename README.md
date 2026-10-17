@@ -8,6 +8,13 @@ Desenvolvido para operar localmente em container Linux via **WSLC** (WSL Contain
 
 ## 🚀 Funcionalidades Principais
 
+
+- **Proxy Reverso Xtream para Smart TV & Aplicativos (Bypass de Bloqueio de Operadora)**:
+  - Permite configurar a URL da instância (ex: `http://146.235.26.138:3000`) diretamente como **Servidor** no aplicativo de IPTV da sua TV (IPTV Smarters, TiviMate, XCIPTV, etc.).
+  - **Túnel Seguro**: As requisições de autenticação e fluxos de vídeo (ao vivo, filmes, séries e EPG) são encaminhadas via **Cloudflare WARP**, contornando bloqueios de ASN e operadoras (Starlink, Claro, Vivo, etc.).
+  - **Smart Failover**: Encaminha automaticamente para o servidor Top 1 online mais rápido e estável do ranking, ou para um host fixo via `PROXY_TARGET_HOST`.
+  - **Seguimento Automático de Redirecionamento (HTTP 302)**: O proxy consome internamente os redirecionamentos dos nós de streaming (CDN/DataCamp) e repassa os bytes de vídeo diretamente para a TV via PIPE sem expor o IP bloqueado ao cliente final.
+
 - **Endpoint de Consumo Simples (`/iptv/host`)**:
   - Retorna em texto puro (`text/plain`) apenas a URL do melhor host no momento (ex: `http://ocvtab.info`).
   - Consumo direto por players, scripts e aplicativos de IPTV sem necessidade de parsing JSON.
@@ -73,6 +80,99 @@ $$Score_{final} = \begin{cases} 0 & \text{se offline no teste atual} \\ (Score_{
 | `GET` | `/api/runs` | `application/json` | Histórico das rodadas de avaliação |
 | `GET` | `/api/status` | `application/json` | Estado do agendador, última execução e próximo teste |
 | `POST` | `/api/test/run` | `application/json` | Dispara manualmente uma nova rodada de benchmark |
+| `GET` | `/api/proxy/info` | `application/json` | Metadados e status do Proxy Xtream para Smart TV |
+| `ALL` | `/player_api.php` | `application/json` | Proxy de autenticação e catálogo Xtream Codes com reescrita de `server_info` |
+| `GET` | `/live/:user/:pass/:id.ts` | `video/mp2t` | Streaming contínuo de canal ao vivo com resolução interna de HTTP 302 |
+| `GET` | `/movie/...` e `/series/...` | `video/*` | Streaming de filmes e séries sob demanda (VOD) |
+| `GET` | `/xmltv.php` | `application/xml` | Guia eletrônico de programação (EPG) |
+| `ALL` | `/h/:customHost/*` | Variado | Proxy explícito forçando um servidor IPTV específico |
+
+---
+
+## 📺 Proxy Reverso Xtream com Anti-Bloqueio para Smart TV & Aplicativos
+
+### 1. O Problema Resolvido:
+No Brasil, operadoras de telecomunicações e provedores de internet via satélite (como a **Starlink**, Claro, Vivo, etc.) aplicam bloqueios judiciais e ordens da Anatel por meio de descarte de pacotes em nível de rota IP (*null-routing / blackholing*) para faixas de IP associadas a CDNs de IPTV (especialmente **DataCamp Limited / CDN77**).
+
+Como consequência:
+* Dispositivos na rede local doméstica (como Smart TVs Samsung Tizen, LG webOS, TV Boxes ou computadores) sofrem **timeout de conexão** ou tela preta ao tentar reproduzir canais desses servidores.
+* Smart TVs com sistemas fechados não possuem aplicativos de VPN nativos para contornar esses bloqueios.
+
+### 2. Arquitetura da Solução:
+Implementamos um **Proxy Reverso de alta vazão** integrado diretamente no backend Fastify da aplicação, rodando na instância Oracle Cloud na porta `3000`:
+
+```
+[ Smart TV / App ]  ---> (HTTP porta 3000 limpa, sem bloqueio ISP)
+       |
+       v
+[ Instância Oracle Cloud ]
+       |
+       +---> [ Proxy Fastify / Xtream ]
+                   |
+                   | (Túnel SOCKS5 criptografado na porta 40000)
+                   v
+             [ Cloudflare WARP ]
+                   |
+                   v (Rede Global Anycast Cloudflare)
+             [ Servidor Final IPTV / CDN77 ]
+```
+
+### 3. Como Configurar na Smart TV / TV Box:
+Compatível com qualquer aplicativo que utilize o padrão **Xtream Codes** (ex: **IPTV Smarters Pro**, **TiviMate**, **XCIPTV**, **SS IPTV**, **Smart IPTV**, etc.):
+
+* **Nome da Conexão:** `IPTV Oracle Dash` *(ou qualquer nome de sua preferência)*
+* **URL do Servidor / Host:** `http://146.235.26.138:3000`
+* **Usuário:** *(seu usuário habitual do serviço de IPTV)*
+* **Senha:** *(sua senha habitual do serviço de IPTV)*
+
+### 4. Recursos Avançados do Proxy:
+- **Reescrita Dinâmica de `server_info`**:
+  Ao autenticar no `/player_api.php`, o proxy substitui os campos `server_info.url` e `server_info.port` da resposta para apontar para `146.235.26.138:3000`. Isso impede que players inteligentes tentem contornar o proxy e conectem direto no IP bloqueado pela operadora.
+- **Seguimento Transparente de Redirecionamento (HTTP 302)**:
+  Muitos servidores de IPTV retornam um `HTTP 302 Moved Temporarily` apontando para nós de mídia da CDN (ex: `142.99.103.248:80`). O proxy intercepta e segue o redirecionamento internamente através do Cloudflare WARP, repassando o fluxo binário de vídeo (`video/mp2t`) diretamente para a TV via *stream pipe* com zero delay.
+- **Smart Failover Automático**:
+  Por padrão, o proxy roteia as requisições da TV para o **Top 1 host online com melhor estabilidade e menor latência** identificado pelo benchmark automatizado.
+- **Sobrescrita Explícita**:
+  - Para fixar um servidor globalmente: defina a variável `PROXY_TARGET_HOST=http://exemplo.com` no `.env` ou `ecosystem.config.js`.
+  - Para forçar um servidor em um player específico: use o prefixo de rota `/h/<dominio>/`, ex: `http://146.235.26.138:3000/h/interblack.pro/`.
+
+---
+
+## 🛡️ Infraestrutura Anti-Bloqueio: Cloudflare WARP na Oracle Cloud
+
+### 1. Por que foi implementado?
+1. **Bloqueio de ASN de Datacenter**: Alguns provedores de IPTV utilizam Cloudflare ou WAFs que rejeitam conexões originadas de faixas de IP de datacenters conhecidos (como Oracle Cloud ASN 31898), retornando erro `HTTP 403 Forbidden`.
+2. **Bypass de Rotas Problemáticas**: O Cloudflare WARP garante que tanto as sondagens de benchmark do agendador quanto o fluxo de vídeo da TV trafeguem pela rede mundial da Cloudflare com IP residencial/Anycast confiável.
+
+### 2. Configuração do WARP em Modo SOCKS5 na Instância Oracle:
+O cliente oficial da Cloudflare foi instalado e configurado como serviço de sistema:
+
+```bash
+# 1. Instalar o repositório e pacote oficial do Cloudflare WARP no Ubuntu
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ jammy main" | sudo tee /etc/apt/sources.list.d/cloudflare-warp.list
+sudo apt update && sudo apt install -y cloudflare-warp
+
+# 2. Registrar o cliente e configurar em modo proxy local SOCKS5
+warp-cli registration new
+warp-cli mode proxy
+warp-cli proxy port 40000
+warp-cli connect
+
+# 3. Validar a conexão SOCKS5
+curl --socks5-hostname 127.0.0.1:40000 https://cloudflare.com/cdn-cgi/trace
+# Retorna: warp=on
+```
+
+### 3. Integração no Node.js e PM2:
+No arquivo de inicialização do PM2 (`ecosystem.config.js`):
+```javascript
+env: {
+  ...
+  SOCKS_PROXY_URL: 'socks5h://127.0.0.1:40000'
+}
+```
+A biblioteca `socks-proxy-agent` intercepta as conexões HTTP/HTTPS nos módulos `evaluator.js` e `xtreamProxy.js`, garantindo que todas as saídas usem o túnel WARP sem alterar o tráfego de entrada da aplicação.
 
 ---
 

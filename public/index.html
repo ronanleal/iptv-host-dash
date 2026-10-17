@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css?v=1.1.0">
+  <link rel="stylesheet" href="/css/styles.css?v=1.3.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -108,6 +108,44 @@
           <span class="metric-label">Métrica de Remuneração</span>
           <span class="metric-value" id="best-host-reputation">-- pts</span>
         </div>
+      </div>
+    </section>
+
+    
+    <!-- Xtream Proxy TV Card -->
+    <section class="proxy-tv-card">
+      <div class="proxy-tv-header">
+        <div class="proxy-tv-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+            <polyline points="17 2 12 7 7 2"></polyline>
+          </svg>
+        </div>
+        <div class="proxy-tv-heading">
+          <div class="proxy-tv-title-row">
+            <h2 class="proxy-tv-title">Servidor Xtream para Smart TV & Aplicativos</h2>
+            <span class="badge-bypass">Túnel Anti-Bloqueio Starlink</span>
+          </div>
+          <p class="proxy-tv-desc">Configure esta URL como <strong>Servidor</strong> no seu app de TV (IPTV Smarters, TiviMate, XCIPTV, etc.) com seu usuário e senha habituais.</p>
+        </div>
+      </div>
+
+      <div class="proxy-tv-action-row">
+        <div class="proxy-url-box">
+          <span class="proxy-url-label">URL DO SERVIDOR:</span>
+          <code id="proxy-tv-url" class="proxy-url-code">Carregando...</code>
+        </div>
+        <button class="btn-copy-proxy" onclick="copyProxyUrl()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span id="copy-proxy-label">Copiar URL para TV</span>
+        </button>
+      </div>
+
+      <div class="proxy-tv-footer">
+        <span>🔄 <strong>Encaminhamento inteligente:</strong> Roteando automaticamente via Cloudflare WARP para <strong id="proxy-active-host">o melhor host recomendado</strong>.</span>
       </div>
     </section>
 
@@ -288,6 +326,6 @@
     </div>
   </footer>
 
-  <script src="/js/dashboard.js?v=1.1.0"></script>
+  <script src="/js/dashboard.js?v=1.3.0"></script>
 </body>
 </html>

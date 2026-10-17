@@ -24,16 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadAllData() {
   try {
-    const [hostsRes, statusRes, runsRes, top10Res] = await Promise.all([
+    const [hostsRes, statusRes, runsRes, top10Res, proxyRes] = await Promise.all([
       fetch('/api/hosts').then(r => r.json()),
       fetch('/api/status').then(r => r.json()),
       fetch('/api/runs?limit=10').then(r => r.json()),
-      fetch('/api/history/top10?limit=15').then(r => r.json())
+      fetch('/api/history/top10?limit=15').then(r => r.json()),
+      fetch('/api/proxy/info').then(r => r.json()).catch(() => null)
     ]);
 
     allHostsData = hostsRes.hosts || [];
     updateStatusUI(statusRes);
     updateBestHostUI(allHostsData[0] || null);
+    updateProxyUI(proxyRes, allHostsData[0] || null);
     updateKPIs(allHostsData, statusRes);
     renderTable();
     updateCharts(allHostsData, runsRes.runs || [], top10Res || null);
@@ -114,7 +116,7 @@ function updateBestHostUI(best) {
   ttfbEl.textContent = `${best.last_ttfb_ms || 0} ms`;
   jitterEl.textContent = `${best.last_jitter_ms || 0} ms`;
   speedEl.textContent = `${best.last_speed_kbps || 0} KB/s`;
-  uptimeEl.textContent = `${best.uptime_24h || 100}%`;
+  uptimeEl.textContent = `${best.uptime_24h != null ? best.uptime_24h : 100}%`;
   repEl.textContent = `${best.reputation_score || 0} pts`;
 }
 
@@ -219,7 +221,7 @@ function renderTable() {
         <td style="font-family: var(--font-mono);">${h.last_jitter_ms ? `${h.last_jitter_ms} ms` : '--'}</td>
         <td style="font-family: var(--font-mono);">${h.last_latency_ms ? `${h.last_latency_ms} ms` : '--'}</td>
         <td style="font-family: var(--font-mono);">${h.last_speed_kbps ? `${h.last_speed_kbps} KB/s` : '--'}</td>
-        <td style="font-family: var(--font-mono); color: ${h.uptime_24h >= 90 ? 'var(--color-green)' : 'var(--text-muted)'};">${h.uptime_24h || 100}%</td>
+        <td style="font-family: var(--font-mono); color: ${h.uptime_24h == null ? 'var(--text-muted)' : h.uptime_24h >= 90 ? 'var(--color-green)' : h.uptime_24h >= 50 ? 'var(--text-muted)' : '#f87171'};">${h.uptime_24h != null ? h.uptime_24h + "%" : "--"}</td>
         <td>
           <button class="btn-mini-copy" onclick="copyToClipboard('${h.host}')" title="Copiar URL">Copiar</button>
         </td>
@@ -546,5 +548,27 @@ function initZoomControls() {
         btnReset.style.display = 'none';
       }
     });
+  }
+}
+
+
+function updateProxyUI(proxyInfo, bestHost) {
+  const urlEl = document.getElementById('proxy-tv-url');
+  const targetHostEl = document.getElementById('proxy-active-host');
+  if (!urlEl) return;
+
+  const currentOrigin = window.location.origin;
+  urlEl.textContent = proxyInfo?.proxy_url || currentOrigin;
+
+  if (targetHostEl) {
+    const activeTarget = proxyInfo?.current_target_host || (bestHost ? bestHost.host : 'Automático (Melhor Host)');
+    targetHostEl.textContent = activeTarget;
+  }
+}
+
+function copyProxyUrl() {
+  const url = document.getElementById('proxy-tv-url')?.textContent;
+  if (url && !url.includes('Carregando')) {
+    copyToClipboard(url);
   }
 }
